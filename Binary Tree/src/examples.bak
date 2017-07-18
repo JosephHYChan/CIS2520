@@ -1,0 +1,208 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "restaurant.h"
+#define NODE_INFO_SIZE 30
+#define INTER_SPACE_SIZE 2
+
+int maximum(int a, int b)
+{
+    return (a>=b)?a:b;    
+}
+
+int treeDepth(Tree * tree)
+{
+    if (tree == NULL) {
+        return 0;
+    } else {
+        return 1 + maximum(treeDepth(getLeftSubtree(tree)), treeDepth(getRightSubtree(tree)));
+    }
+}
+
+double power(double num, int iteration)
+{
+    if (iteration==0) {
+	    return 1;
+	} else if (iteration>0) {
+	    return num*power(num, iteration-1);
+	} else {
+	    return (1/power(num, -1*iteration));
+	}
+}
+
+void printAllInfoInNode(TreeDataTypePtr data) 
+{
+    printf("Name : %s\nType : %s\nRating : %.1f / 5.0\n\n", ((restaurant *)data)->name, ((restaurant *)data)->type, ((restaurant *)data)->rate);
+}
+
+void printDuplicate(short amount, char prtch) 
+{
+    if (amount>0) {
+	    printf("%c", prtch);
+	    printDuplicate(amount-1, prtch);
+	}
+}
+
+void printNameAndRatingInNode(TreeDataTypePtr data, int nodeSize, bool depthFirst)
+{
+	if (depthFirst) {
+        printf("%s(%.1f)", ((restaurant *)data)->name, ((restaurant *)data)->rate);
+        printDuplicate(nodeSize-strlen(((restaurant *)data)->name)-6,'-');
+	    printf("+\n");
+	} else {
+        printDuplicate((nodeSize-strlen(((restaurant *)data)->name)-6)/2,'-');
+        printf("%s(%1.f)", ((restaurant *)data)->name, (double)((restaurant *)data)->rate);
+        printDuplicate((nodeSize-strlen(((restaurant *)data)->name)-6)/2,'-');
+	}
+}
+
+void printDepthFirst(Tree * tree, int layer, int nodeType)
+{
+    if (tree != NULL) {
+	    printDepthFirst(getRightSubtree(tree), layer+1, 1);
+		if (nodeType==0) {
+		    printf("--+");
+		    printNameAndRatingInNode(getRootData(tree), NODE_INFO_SIZE, true);
+		} else if (nodeType==1) {
+		    printDuplicate((layer-1)*NODE_INFO_SIZE+4,' ');
+		    printf("+");
+		    printNameAndRatingInNode(getRootData(tree), NODE_INFO_SIZE, true);
+		    printDuplicate((layer-1)*NODE_INFO_SIZE+4, ' ');
+		    printf("|\n");
+		} else {
+		    printDuplicate((layer-1)*NODE_INFO_SIZE+4, ' ');
+		    printf("|\n");
+		    printDuplicate((layer-1)*NODE_INFO_SIZE+4,' ');
+		    printf("+");
+		    printNameAndRatingInNode(getRootData(tree), NODE_INFO_SIZE, true);
+		}
+	    printDepthFirst(getLeftSubtree(tree), layer+1, 2);
+	}
+}
+
+void printBreadthFirst(Tree * tree)
+{
+    int depth = treeDepth(tree);
+    int layer = 1;
+	int count = 0;
+    int nodesInCurrentLevel = 1;
+    int nodesInNextLevel = 0;
+    int nodesFound = 0;
+	int maxNumOfNodes = power(2, depth-1);
+	int nodeLength = 0;
+	int maxLength = maxNumOfNodes*(NODE_INFO_SIZE+INTER_SPACE_SIZE);
+	int paddingSpaceSize =0;
+	int interSpaceSize = 0;
+	bool needPadding= true;
+    Tree * node = tree;
+    Tree * leftson = NULL;
+    Tree * rightson = NULL;
+    LinkedList * queue = NULL;
+    LinkedList * head = NULL;
+    
+    if (tree != NULL) {
+        add(&queue, (void *)tree, NULL);
+        while (queue != NULL) {
+            head = removeHead(&queue);
+            node = (Tree *)head->info;
+			if (layer<depth) {
+			    nodeLength = power(2,depth-layer-1)*(NODE_INFO_SIZE+INTER_SPACE_SIZE);
+	            paddingSpaceSize = (power(0.5, layer)*maxLength)-(nodeLength/2);
+			    interSpaceSize = 2*(paddingSpaceSize)+INTER_SPACE_SIZE/2;
+			} else {
+			    nodeLength = NODE_INFO_SIZE;
+	            paddingSpaceSize = INTER_SPACE_SIZE/2;
+			    interSpaceSize = INTER_SPACE_SIZE;
+            }	
+			if (needPadding == true) {
+			    printDuplicate(paddingSpaceSize, ' ');
+				needPadding = false;
+			} else {
+			    printDuplicate(interSpaceSize, ' ');
+			}
+            printNameAndRatingInNode(getRootData(node), nodeLength, false);
+            nodesInCurrentLevel -= 1;
+			nodesFound += 1;
+            leftson = getLeftSubtree(node);
+            rightson = getRightSubtree(node);
+            if (!isTreeEmpty(leftson)) {
+                add(&queue, (void *)leftson, NULL);
+                nodesInNextLevel += 1;
+            }
+            if (!isTreeEmpty(rightson)) {
+                add(&queue, (void *)rightson, NULL);
+                nodesInNextLevel += 1;
+            }
+            if (nodesInCurrentLevel == 0) {
+                printf("\n");
+			    printDuplicate(paddingSpaceSize, ' ');
+			    printf("%c",'|');
+			    printDuplicate(nodeLength-4, ' ');
+			    printf("%c",'|');
+				for (count = 0; count < nodesFound-1; count++) {
+			        printDuplicate(interSpaceSize, ' ');
+			        printf("%c",'|');
+			        printDuplicate(nodeLength-4, ' ');
+			        printf("%c",'|');
+				}
+				printf("\n");
+				needPadding = true;
+				layer += 1;
+                nodesInCurrentLevel = nodesInNextLevel ;
+                nodesInNextLevel  = 0;
+				nodesFound = 0;
+            }
+        }
+    }
+}
+
+int compareName(void * data1, void *data2) 
+{
+    int result = 0;
+    
+    if (strcmp(((restaurant *)data1)->name, ((restaurant *)data2)->name) > 0) {
+        result = 1;
+    } else if (strcmp(((restaurant *)data1)->name, ((restaurant *)data2)->name) < 0) {
+        result = -1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+int compareForLowerRatingFirst(void * data1, void *data2) 
+{
+    int result = 0;
+    
+    if (((restaurant *)data1)->rate == ((restaurant *)data2)->rate) {
+        result = compareName(data1, data2);
+    } else if (((restaurant *)data1)->rate > ((restaurant *)data2)->rate) {
+        result = 1;
+    } else {
+        result = -1;
+    }
+    return result;
+}
+
+int compareForHigherRatingFirst(void * data1, void *data2) 
+{
+    int result = 0;
+    
+    if (((restaurant *)data1)->rate == ((restaurant *)data2)->rate) {
+        result = compareName(data1, data2);
+    } else if (((restaurant *)data1)->rate < ((restaurant *)data2)->rate) {
+        result = 1;
+    } else {
+        result = -1;
+    }
+    return result;
+}
+
+void destroyRatingInfo(TreeDataTypePtr data)
+{
+    memset(((restaurant *)data)->name, 0, 50);
+    memset(((restaurant *)data)->type, 0, 25);
+    ((restaurant *)data)->rate = 0.0;
+    free(data);
+    data = NULL;
+}

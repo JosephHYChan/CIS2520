@@ -1,0 +1,15 @@
+N07, Italian, 4.0 
+N03, Canadian, 4.3
+N041, American, 4.1
+N12, French, 3.5
+N09, Thai, 4.7
+N11, Canadian, 3.9
+N12, Canadian, 3.0
+N08, French, 2.5
+N01, European, 3.6
+N15, Canadian, 4.0
+N13, British, 2.7
+N05, British, 3.5
+N06, British, 3.8
+N10, Canadian, 2.9
+N02, Canadian, 4.3

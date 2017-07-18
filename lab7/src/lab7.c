@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+void swap(int * x, int * y){
+	int temp;
+	temp = *x;
+	*x = *y;
+	*y = temp;
+}
+void bubblesort(int a[], int n){
+	int i;
+	int j;
+
+	for(i=0; i<n; i=i+1){
+	    for(j=0; j<n-i-1; j=j+1){
+	        if(a[j] > a[j+1]){
+	            swap(&a[j],&a[j+1]);
+	        }
+	    }
+	}
+}
+void rbubblesort(int a[], int n){
+	//int i;
+	int j;
+
+	for(j=0; j<n-1; j=j+1){
+		if(a[j] > a[j+1]){
+			swap(&a[j],&a[j+1]);
+		}
+	}
+	if(n>2){
+		rbubblesort(a, n-1);
+	}
+}
+
+int main(void){
+	int a[1000];
+	int count = 0;
+	srand(time(NULL));
+
+	for(count = 0; count < 1000; count++){
+		a[count] = count;
+	}
+
+	// for(count = 0; count < 100000; count++){
+	// 	printf("%d\n", a[count]);
+	// }
+	printf("Normal\n");
+	bubblesort(a,1000);
+	for(int i = 0; i<1000;i++){
+		printf("%d\n",a[i]);
+	}
+
+	printf("Recursive\n");
+	rbubblesort(a,1000);
+	for(int i = 0; i<1000;i++){
+		printf("%d\n",a[i]);
+	}
+}
